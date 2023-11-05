@@ -59,6 +59,17 @@ async function run() {
             console.log(err);
         }
     })
+    // get foods by donator email
+    app.get('/api/myFood/:email', async(req, res) => {
+        try{
+            const email = req.params.email;
+            const query = {donator_email: email}
+            const result = await foods.find(query).toArray()
+            res.send(result);
+        }catch(err){
+            console.log(err);
+        }
+    })
     // filterBY date of food short
     app.get('/api/foodsExpireDataShort', async (req , res) => {
         try{
