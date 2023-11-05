@@ -180,7 +180,7 @@ async function run() {
       const update = {
           $set : {
             food_status: food.food_status,
-            food_note: food.food_note,
+            requester_note: food.requester_note,
             request_date: food.request_date,
             requester_email: food.requester_email,
             requester_image: food.requester_image,
