@@ -130,24 +130,50 @@ async function run() {
     });
     // update food
     app.put("/api/myFood/:id", async (req, res) => {
-     try{
+      try {
         const food = req.body;
         const id = req.params.id;
-        const filter = {_id : new ObjectId(id)}
+        const filter = { _id : new ObjectId(id) };
         const update = {
-            $set:{
-                food_name: food.food_name,
-                food_image: food.food_image,
-                food_quantity: food.food_quantity,
-                food_location: food.food_location,
-                food_expire: food.food_expire,
-                food_note: food.food_note,
-            }
-        }
-        const result = await foods.updateOne(filter,update)
-        res.send(result)
-     }catch (err) {
+          $set: {
+            food_name: food.food_name,
+            food_image: food.food_image,
+            food_quantity: parseInt(food.food_quantity),
+            food_location: food.food_location,
+            food_expire: food.food_expire,
+            food_note: food.food_note,
+          },
+        };
+        const result = await foods.updateOne(filter, update);
+        res.send(result);
+      } catch (err) {
         console.log(err);
+      }
+    });
+
+    // request for food
+    app.patch("/api/request/:id", async (req, res) => {
+     try{
+      const food = req.body;
+      const id = req.params.id;
+      const filter = { _id : new ObjectId(id) };
+      const option = {upsert: true };
+      const update = {
+          $set : {
+            food_status: food.food_status,
+            food_note: food.food_note,
+            request_date: food.request_date,
+            requester_email: food.requester_email,
+            requester_image: food.requester_image,
+            requester_name: food.requester_name,
+            money: parseInt(food.money)
+
+          }
+      }
+      const result = await foods.updateOne(filter,update,option);
+      res.send(result);
+     }catch(err){
+      console.log(err);
      }
     });
 
