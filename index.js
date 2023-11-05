@@ -2,7 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const app = express();
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const port = process.env.PORT || 5000;
 
 app.use(express.json());
@@ -48,6 +48,17 @@ async function run() {
         console.log(err);
       }
     });
+    // get single food from database
+    app.get('/api/food/:id', async (req, res) => {
+        try{
+            const id = req.params.id
+            const query = {_id : new ObjectId(id)}
+            const result = await foods.findOne(query)
+            res.send(result);
+        }catch(err){
+            console.log(err);
+        }
+    })
     // filterBY date of food short
     app.get('/api/foodsExpireDataShort', async (req , res) => {
         try{
