@@ -38,7 +38,7 @@ async function run() {
     // available food from database
     app.get("/api/availableFoods", async (req, res) => {
       try {
-        const query = { food_status: "available" };
+        const query = { food_status: {$in: ['available', "pending"]} };
         const option = {
           sort: { food_quantity: -1 },
         };
@@ -73,7 +73,7 @@ async function run() {
     // filterBY date of food short
     app.get("/api/foodsExpireDataShort", async (req, res) => {
       try {
-        const query = { food_status: "available" };
+        const query = { food_status: {$in: ['available', "pending"]} };
         const result = await foods
           .find(query)
           .sort({ food_expire: 1 })
@@ -86,7 +86,7 @@ async function run() {
     // filterBY date of food long
     app.get("/api/foodsExpireDataLong", async (req, res) => {
       try {
-        const query = { food_status: "available" };
+        const query = { food_status: {$in: ['available', "pending"]} };
         const result = await foods
           .find(query)
           .sort({ food_expire: -1 })
@@ -104,6 +104,18 @@ async function run() {
       }
       const result = await foods.find(query).toArray();
       res.send(result);
+    });
+
+    // get food by id for donator 
+     app.get("/api/pendingFoods/:id", async (req, res) => {
+      try {
+        const id = req.params.id
+        const query = { _id : new ObjectId(id) };
+        const result = await foods.findOne(query)
+        res.send(result);
+      } catch (err) {
+        console.log(err);
+      }
     });
 
     // insert Foods in database
@@ -168,6 +180,24 @@ async function run() {
             requester_name: food.requester_name,
             money: parseInt(food.money)
 
+          }
+      }
+      const result = await foods.updateOne(filter,update,option);
+      res.send(result);
+     }catch(err){
+      console.log(err);
+     }
+    });
+    // delivery for food donate
+    app.patch("/api/delivery/:id", async (req, res) => {
+     try{
+      const food = req.body;
+      const id = req.params.id;
+      const filter = { _id : new ObjectId(id) };
+      const option = {upsert: true };
+      const update = {
+          $set : {
+            food_status: food.food_status,
           }
       }
       const result = await foods.updateOne(filter,update,option);
