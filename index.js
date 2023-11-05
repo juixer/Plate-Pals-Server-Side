@@ -48,8 +48,18 @@ async function run() {
         console.log(err);
       }
     });
-    // filterBY date of food
-    app.get('/api/foodsExpireData', async (req , res) => {
+    // filterBY date of food short
+    app.get('/api/foodsExpireDataShort', async (req , res) => {
+        try{
+            const query = { food_status: "available" }
+            const result = await foods.find(query).sort({food_expire: 1}).toArray();
+            res.send(result);
+        }catch(err){
+            console.log(err);
+        }
+    })
+    // filterBY date of food long
+    app.get('/api/foodsExpireDataLong', async (req , res) => {
         try{
             const query = { food_status: "available" }
             const result = await foods.find(query).sort({food_expire: -1}).toArray();
