@@ -105,6 +105,13 @@ async function run() {
       const result = await foods.find(query).toArray();
       res.send(result);
     });
+    // get user requests
+    app.get('/api/myRequest/:email', async (req, res) => {
+      const email = req.params.email
+      const query = {requester_email : email}
+      const result = await foods.find(query).toArray()
+      res.send(result);
+    })
 
     // get food by id for donator 
      app.get("/api/pendingFoods/:id", async (req, res) => {
@@ -180,6 +187,29 @@ async function run() {
             requester_name: food.requester_name,
             money: parseInt(food.money)
 
+          }
+      }
+      const result = await foods.updateOne(filter,update,option);
+      res.send(result);
+     }catch(err){
+      console.log(err);
+     }
+    });
+    // request cancel for food
+    app.patch("/api/request/:id", async (req, res) => {
+     try{
+      const food = req.body;
+      const id = req.params.id;
+      const filter = { _id : new ObjectId(id) };
+      const option = {upsert: true };
+      const update = {
+          $set : {
+            food_status: food.food_status,
+            request_date: food.request_date,
+            requester_email: food.requester_email,
+            requester_image: food.requester_image,
+            requester_name: food.requester_name,
+            money: food.money
           }
       }
       const result = await foods.updateOne(filter,update,option);
