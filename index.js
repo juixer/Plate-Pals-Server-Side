@@ -24,6 +24,7 @@ const client = new MongoClient(uri, {
     //   await client.connect();
         const database = client.db('PlatePals')
         const teams = database.collection('teams')
+        const foods = database.collection('foods')
 
     // GET Team DATA
     app.get('/api/teams', async (req, res) => {
@@ -35,6 +36,12 @@ const client = new MongoClient(uri, {
         catch(err){
             console.log(err);
         }
+    })
+    // insert Foods in database
+    app.post('/api/foods', async (req, res) => {
+        const food = req.body;
+        const result = await foods.insertOne(food);
+        res.send(result)
     })
 
 
