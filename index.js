@@ -72,7 +72,7 @@ async function run() {
     app.get('/api/foods', async (req, res) => {
         let query = {};
         if(req.query?.name){
-            query= {food_name : req.query.name}
+            query= {food_name : { $regex: new RegExp(req.query.name, 'i')}}
         }
         const result = await foods.find(query).toArray();
         res.send(result)
