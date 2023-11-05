@@ -48,6 +48,25 @@ async function run() {
         console.log(err);
       }
     });
+    // filterBY date of food
+    app.get('/api/foodsExpireData', async (req , res) => {
+        try{
+            const query = { food_status: "available" }
+            const result = await foods.find(query).sort({food_expire: -1}).toArray();
+            res.send(result);
+        }catch(err){
+            console.log(err);
+        }
+    })
+    // get food by search
+    app.get('/api/foods', async (req, res) => {
+        let query = {};
+        if(req.query?.name){
+            query= {food_name : req.query.name}
+        }
+        const result = await foods.find(query).toArray();
+        res.send(result)
+    })
 
     // insert Foods in database
     app.post("/api/foods", async (req, res) => {
@@ -83,6 +102,7 @@ async function run() {
   }
 }
 run().catch(console.dir);
+
 
 app.get("/", (req, res) => {
   res.send("Welcome to PlatePals DATABASE");
