@@ -2,11 +2,17 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const app = express();
+const cookieParser = require("cookie-parser");
+const jwt = require("jsonwebtoken");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const port = process.env.PORT || 5000;
 
 app.use(express.json());
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:5173'],
+  credentials: true,
+}));
+app.use(cookieParser())
 
 // MONGODB CONFIG
 const uri = `mongodb+srv://${process.env.MONGO_USER}:${process.env.MONGO_PASS}@cluster0.en41ppq.mongodb.net/?retryWrites=true&w=majority`;
@@ -18,12 +24,47 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   },
 });
+
+
+// JWT VERIFY
+const verify = (req, res, next) => {
+  const token = req?.cookies.token;
+  if(!token){
+    return res.status(401).send({message: 'Not authorized'})
+  }
+
+  jwt.verify(token, process.env.SECRET_TOKEN, (err, decoded) => {
+    if(err) {
+      return res.status(401).send({message: 'Not authorized'})
+    }
+    req.user = decoded
+    next();
+  })
+}
 async function run() {
   try {
     //   await client.connect();
     const database = client.db("PlatePals");
     const teams = database.collection("teams");
     const foods = database.collection("foods");
+
+    // JWT Authorization
+    app.post('/jwt', async (req, res) => {
+      const user = req.body
+      const token = jwt.sign(user, process.env.SECRET_TOKEN, {
+        expiresIn : '1h',
+      })
+      res.cookie('token', token,{
+        httpOnly:true,
+        secure:  true,
+        sameSite: "none",
+      }).send({status: true})
+    })
+
+    app.post('/login', async(req, res) => {
+      const user = req.body;
+      res.clearCookie('token', {maxAge: 0}.send({status: true}))
+    })
 
     // GET Team DATA
     app.get("/api/teams", async (req, res) => {
@@ -60,10 +101,16 @@ async function run() {
       }
     });
     // get foods by donator email
-    app.get("/api/myFood/:email", async (req, res) => {
+    app.get("/api/myFood",verify, async (req, res) => {
       try {
-        const email = req.params.email;
-        const query = { donator_email: email };
+        if(req.user.email !== req.query.email) {
+          return res.status(403).send({message: 'not authorized'});
+        }
+        let query = {}
+        const email = req.query?.email
+        if(email) {
+          query = { donator_email : email };
+        }
         const result = await foods.find(query).toArray();
         res.send(result);
       } catch (err) {
@@ -106,9 +153,15 @@ async function run() {
       res.send(result);
     });
     // get user requests
-    app.get('/api/myRequest/:email', async (req, res) => {
-      const email = req.params.email
-      const query = {requester_email : email}
+    app.get('/api/myRequest',verify, async (req, res) => {
+      if(req.user.email !== req.query.email) {
+        return res.status(403).send({message: 'not authorized'});
+      }
+      let query = {}
+      const email = req.query?.email
+      if(email) {
+        query = {requester_email : email}
+      }
       const result = await foods.find(query).toArray()
       res.send(result);
     })
